@@ -21,7 +21,7 @@ def video_upload(request):
             return redirect('video_to_gif_request', video_id=instance.id)
     else:
         form = UploadVideoForm()
-        return render(request, 'upload_video.html', {'form': form})
+        return render(request, 'index.html')
 
 
 def video_to_gif(video_id, gif_image_id):
@@ -54,7 +54,11 @@ def video_to_gif_request(request, video_id):
     gif_image = GifImage(video_id=video_id)
     gif_image.save()
     django_rq.enqueue(video_to_gif, video_id=video_id, gif_image_id=gif_image.id)
-    return redirect('gif_image_check', gif_image.id)
+    return redirect('gif_image_deffered', gif_image.id)
+
+
+def gif_image_deffered(request, gif_image_id):
+    return render(request, 'gif_result.html', {'gif_image_id': gif_image_id})
 
 
 def gif_image_check(request, gif_image_id):
