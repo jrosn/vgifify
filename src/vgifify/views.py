@@ -1,10 +1,11 @@
 import django_rq
 import tempfile
 import subprocess
+import json
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.files import File
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 
 from .forms import UploadVideoForm
 from .models import Video, GifImage
@@ -53,4 +54,22 @@ def video_to_gif_request(request, video_id):
     gif_image = GifImage(video_id=video_id)
     gif_image.save()
     django_rq.enqueue(video_to_gif, video_id=video_id, gif_image_id=gif_image.id)
-    return HttpResponse("AAAAAAAAAAAAAAAAAAAAAAaaa")
+    return redirect('gif_image_check', gif_image.id)
+
+
+def gif_image_check(request, gif_image_id):
+    gif_image = get_object_or_404(GifImage, id=gif_image_id)
+    return HttpResponse(json.dumps({'ready': bool(gif_image.file)}))
+
+
+def gif_image(request, gif_image_id):
+    gif_image = get_object_or_404(GifImage, id=gif_image_id)
+
+    if gif_image.file is None:
+        raise Http404()
+
+    response = HttpResponse(
+        gif_image.file.read(),
+        content_type='image/gif'
+    )
+    return response

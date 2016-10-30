@@ -10,4 +10,22 @@ urlpatterns = [
         views.video_to_gif_request,
         name='video_to_gif_request'
     ),
+
+    # url(
+    #     r'^result/(?P<gif_image_id>\d+)$',
+    #     views.gif_image_deffered,
+    #     name='gif_image_deffered'
+    # ),
+
+    url(
+        r'^result/(?P<gif_image_id>\d+)/check$',
+        views.gif_image_check,
+        name='gif_image_check'
+    ),
+
+    url(
+        r'^result/(?P<gif_image_id>\d+)/gif$',
+        views.gif_image,
+        name='gif_image'
+    ),
 ]
