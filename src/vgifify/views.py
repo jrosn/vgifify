@@ -24,7 +24,9 @@ def video_upload(request):
 
 
 def video_to_gif(video_id, gif_image_id):
-    video_djfile = Video.objects.all().get(id=video_id)
+    gif_image_obj = GifImage.objects.all().get(id=gif_image_id)
+
+    video_djfile = gif_image_obj.video
     video_tmp_file = tempfile.NamedTemporaryFile()
 
     video_tmp_file.write(video_djfile.file.read())
@@ -41,10 +43,7 @@ def video_to_gif(video_id, gif_image_id):
         proc.kill()
 
     gif_tmp_file.seek(0)
-    GifImage.objects.all().get(id=gif_image_id).file.save(
-        'new',
-        File(gif_tmp_file)
-    )
+    gif_image_obj.file.save('new', File(gif_tmp_file))
 
     gif_tmp_file.close()
     video_tmp_file.close()
