@@ -1,12 +1,5 @@
 click==6.6
-dj-database-url==0.4.1
 Django==1.10.2
 django-rq==0.9.3
-django-storages==1.5.1
-dropbox==7.1.1
 redis==2.10.5
-requests==2.11.1
 rq==0.6.0
-six==1.10.0
-typing==3.5.2.2
-urllib3==1.18.1
