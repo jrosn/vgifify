@@ -17,11 +17,9 @@
             <div class="row">
                 <div class="col-xs-12">
                     <h1>vgifify</h1>
-                    <div class="wait-text">
-                        Пожалуйста, подождите!<br />
-                        Видео конвертируется
-                    </div>
-                    <div class="gif"></div>
+                    <form enctype="multipart/form-data" action="/convert/{{ video_id }}" method="POST">
+                        <button type="submit" class="btn btn-primary">Конвертировать</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -35,26 +33,5 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/js/bootstrap.min.js"
                 integrity="sha384-BLiI7JTZm+JWlgKa0M0kGRpJbF2J8q+qreVrKBC47e3K6BW78kGLrCkeRX6I9RoK"
                 crossorigin="anonymous"></script>
-
-        <script type="text/javascript">
-            var gifId = "{{ result_id }}";
-            var intrvId = setInterval(tryToGetGifIntrv, 3000);
-
-            function tryToGetGifIntrv() {
-                $.getJSON("/convert/result/" + gifId + '/check', function(data) {
-                    if(data.ready == true) {
-                        clearInterval(intrvId);
-                        $('.wait-text').hide();
-                        showGif('/convert/result/' + gifId + "/file");
-                    }
-                });
-            }
-
-            function showGif(url) {
-                $('.gif').html("<img src=\"" + url +"\">");
-            }
-
-
-        </script>
     </body>
 </html>
