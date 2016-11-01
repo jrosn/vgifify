@@ -17,7 +17,6 @@ def video_upload(request):
         if form.is_valid():
             instance = Video(file=request.FILES['file'])
             instance.save()
-            print(instance.id)
             return redirect('video_to_gif_request', video_id=instance.id)
     else:
         form = UploadVideoForm()
