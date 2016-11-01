@@ -23,7 +23,7 @@ def video_upload(request):
         return render(request, 'index.html')
 
 
-def video_to_gif(video_id, gif_image_id):
+def video_to_gif(gif_image_id):
     gif_image_obj = GifImage.objects.all().get(id=gif_image_id)
 
     video_djfile = gif_image_obj.video
@@ -52,7 +52,7 @@ def video_to_gif(video_id, gif_image_id):
 def video_to_gif_request(request, video_id):
     gif_image = GifImage(video_id=video_id)
     gif_image.save()
-    django_rq.enqueue(video_to_gif, video_id=video_id, gif_image_id=gif_image.id)
+    django_rq.enqueue(video_to_gif, gif_image_id=gif_image.id)
     return redirect('gif_image_deffered', gif_image.id)
 
 
