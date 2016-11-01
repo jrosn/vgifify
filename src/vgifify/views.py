@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.files import File
 from django.http import HttpResponse, Http404
 
-from .forms import UploadVideoForm
+from .forms import UploadVideoForm, ConvertForm
 from .models import Video, GifImage
 
 
@@ -17,10 +17,23 @@ def video_upload(request):
         if form.is_valid():
             instance = Video(file=request.FILES['file'])
             instance.save()
-            return redirect('video_to_gif_request', video_id=instance.id)
+            return redirect('convert', video_id=instance.id)
     else:
         form = UploadVideoForm()
         return render(request, 'index.html')
+
+
+def convert(request, video_id):
+    if request.method == "POST":
+        form = ConvertForm(request.POST, request.FILES)
+        if form.is_valid():
+            result = GifImage(video_id=video_id)
+            result.save()
+            django_rq.enqueue(video_to_gif, gif_image_id=result.id)
+            return redirect('convert_result', result_id=result.id)
+    else:
+        form = ConvertForm()
+        return render(request, 'video.html', {'video_id': video_id})
 
 
 def video_to_gif(gif_image_id):
@@ -49,30 +62,28 @@ def video_to_gif(gif_image_id):
     video_tmp_file.close()
 
 
-def video_to_gif_request(request, video_id):
-    gif_image = GifImage(video_id=video_id)
-    gif_image.save()
-    django_rq.enqueue(video_to_gif, gif_image_id=gif_image.id)
-    return redirect('gif_image_deffered', gif_image.id)
+def convert_result(request, result_id):
+    result = get_object_or_404(GifImage, id=result_id)
+
+    if not result:
+        raise Http404()
+
+    return render(request, 'gif_result.html', {'result_id': result_id})
 
 
-def gif_image_deffered(request, gif_image_id):
-    return render(request, 'gif_result.html', {'gif_image_id': gif_image_id})
+def convert_result_file(request, result_id):
+    result = get_object_or_404(GifImage, id=result_id)
 
-
-def gif_image_check(request, gif_image_id):
-    gif_image = get_object_or_404(GifImage, id=gif_image_id)
-    return HttpResponse(json.dumps({'ready': bool(gif_image.file)}))
-
-
-def gif_image(request, gif_image_id):
-    gif_image = get_object_or_404(GifImage, id=gif_image_id)
-
-    if gif_image.file is None:
+    if not result.file:
         raise Http404()
 
     response = HttpResponse(
-        gif_image.file.read(),
+        result.file.read(),
         content_type='image/gif'
     )
     return response
+
+
+def convert_result_check(request, result_id):
+    result = get_object_or_404(GifImage, id=result_id)
+    return HttpResponse(json.dumps({'ready': bool(result.file)}))
