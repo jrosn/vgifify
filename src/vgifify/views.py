@@ -29,14 +29,14 @@ def convert(request, video_id):
         if form.is_valid():
             result = GifImage(video_id=video_id)
             result.save()
-            django_rq.enqueue(video_to_gif, gif_image_id=result.id)
+            django_rq.enqueue(video_to_gif, gif_image_id=result.id, framerate=request.POST.get("framerate"))
             return redirect('convert_result', result_id=result.id)
     else:
         form = ConvertForm()
         return render(request, 'video.html', {'video_id': video_id})
 
 
-def video_to_gif(gif_image_id):
+def video_to_gif(gif_image_id, framerate):
     gif_image_obj = GifImage.objects.all().get(id=gif_image_id)
 
     video_djfile = gif_image_obj.video
@@ -47,7 +47,7 @@ def video_to_gif(gif_image_id):
 
     gif_tmp_file = tempfile.NamedTemporaryFile(suffix=".gif")
 
-    ffmpeg = ["ffmpeg", "-t", "00:00:10", "-y", "-i", video_tmp_file.name, gif_tmp_file.name]
+    ffmpeg = ["ffmpeg", "-r", framerate, "-t", "00:00:10", "-y", "-i", video_tmp_file.name, gif_tmp_file.name]
 
     proc = subprocess.Popen(ffmpeg)
     try:
